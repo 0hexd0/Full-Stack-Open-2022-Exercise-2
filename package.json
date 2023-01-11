@@ -1,0 +1,27 @@
+{
+  "name": "fullstack2",
+  "version": "1.0.0",
+  "description": "\"# Full-Stack-Open-2022-Exercise-2\"",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0hexd0/Full-Stack-Open-2022-Exercise-2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0hexd0/Full-Stack-Open-2022-Exercise-2/issues"
+  },
+  "homepage": "https://github.com/0hexd0/Full-Stack-Open-2022-Exercise-2#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
