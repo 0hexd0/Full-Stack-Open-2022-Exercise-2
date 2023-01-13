@@ -84,18 +84,17 @@ app.post("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  Person.findById(request.params.id).then((persons) => {
-    if (persons.length) {
-      response.json(persons[0]);
-    } else {
+  Person.findById(request.params.id)
+    .then((person) => {
+      response.json(person);
+    })
+    .catch(() => {
       response.status(404).end();
-    }
-  });
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = request.params.id;
-  Person.deleteOne({ id }).then((persons) => {
+  Person.deleteById(request.params.id).then((persons) => {
     response.status(204).end();
   });
 });
