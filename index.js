@@ -60,17 +60,23 @@ app.get("/api/persons", (request, response) => {
 app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  });
+  Person.findOne({ name: body.name }).then((oldPerson) => {
+    if (oldPerson) {
+      return response.status(400).send({ error: `${body.name} is exists` });
+    } else {
+      const person = new Person({
+        name: body.name,
+        number: body.number,
+      });
 
-  person
-    .save()
-    .then((saved) => {
-      response.json(saved);
-    })
-    .catch((error) => next(error));
+      person
+        .save()
+        .then((saved) => {
+          response.json(saved);
+        })
+        .catch((error) => next(error));
+    }
+  });
 });
 
 app.get("/api/persons/:id", (request, response, next) => {
