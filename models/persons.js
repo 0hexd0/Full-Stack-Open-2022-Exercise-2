@@ -5,7 +5,6 @@ const url = process.env.MONGODB_URI;
 mongoose.connect(url);
 
 const personSchema = new mongoose.Schema({
-  _id: mongoose.ObjectId,
   name: String,
   number: String,
 });
