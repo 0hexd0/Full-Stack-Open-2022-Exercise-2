@@ -1,7 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require("./models/persons");
 
 app.use(express.static("build"));
 
@@ -32,49 +34,28 @@ app.use(
   })
 );
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
-
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
 
 app.get("/info", (request, response) => {
   const date = new Date();
-  response.send(
-    `<p>Phonebook has info for ${
-      persons.length
-    } people</p><p>${date.toString()}</p>`
-  );
+  Person.find({}).then([
+    (persons) => {
+      response.send(
+        `<p>Phonebook has info for ${
+          persons.length
+        } people</p><p>${date.toString()}</p>`
+      );
+    },
+  ]);
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
-
-const generateId = () => {
-  return Math.floor(Math.random() * 10000);
-};
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
@@ -85,37 +66,38 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  if (persons.find((p) => p.name === body.name)) {
-    return response.status(400).json({
-      error: "name must be unique",
-    });
-  }
-
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: generateId(),
-  };
-
-  persons = persons.concat(person);
-
-  response.json(person);
+  Person.find({ name: body.name }).then((persons) => {
+    if (persons.length) {
+      return response.status(400).json({
+        error: "name must be unique",
+      });
+    } else {
+      const person = new Person({
+        name: body.name,
+        number: body.number,
+      });
+      person.save().then((saved) => {
+        response.json(saved);
+      });
+    }
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(request.params.id).then((persons) => {
+    if (persons.length) {
+      response.json(persons[0]);
+    } else {
+      response.status(404).end();
+    }
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-  response.status(204).end();
+  const id = request.params.id;
+  Person.deleteOne({ id }).then((persons) => {
+    response.status(204).end();
+  });
 });
 
 const PORT = process.env.PORT || 3001;
