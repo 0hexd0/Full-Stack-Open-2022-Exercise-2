@@ -57,30 +57,20 @@ app.get("/api/persons", (request, response) => {
   });
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: "content missing",
-    });
-  }
-
-  Person.find({ name: body.name }).then((persons) => {
-    if (persons.length) {
-      return response.status(400).json({
-        error: "name must be unique",
-      });
-    } else {
-      const person = new Person({
-        name: body.name,
-        number: body.number,
-      });
-      person.save().then((saved) => {
-        response.json(saved);
-      });
-    }
+  const person = new Person({
+    name: body.name,
+    number: body.number,
   });
+
+  person
+    .save()
+    .then((saved) => {
+      response.json(saved);
+    })
+    .catch((error) => next(error));
 });
 
 app.get("/api/persons/:id", (request, response, next) => {
@@ -96,14 +86,13 @@ app.get("/api/persons/:id", (request, response, next) => {
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
-  const body = request.body;
+  const { name, number } = request.body;
 
-  const note = {
-    name: body.name,
-    number: body.number,
-  };
-
-  Person.findByIdAndUpdate(request.params.id, note, { new: true })
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: "query" }
+  )
     .then((updatedNote) => {
       response.json(updatedNote);
     })
@@ -130,6 +119,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
